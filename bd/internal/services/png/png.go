@@ -10,9 +10,13 @@ import (
 	"github.com/nfnt/resize"
 )
 
-type PngServices struct{}
+type pngServices struct{}
 
-func (p *PngServices) Decode(inputFile string) (image.Image, error) {
+func NewPngServices() *pngServices {
+	return &pngServices{}
+}
+
+func (p *pngServices) Decode(inputFile string) (image.Image, error) {
 	file, err := os.Open(inputFile)
 	if err != nil {
 		panic(err)
@@ -38,11 +42,11 @@ func (p *PngServices) Decode(inputFile string) (image.Image, error) {
 	return img, nil
 }
 
-func (p *PngServices) Resize(img image.Image) image.Image {
+func (p *pngServices) Resize(img image.Image) image.Image {
 	return resize.Resize(0, 500, img, resize.Lanczos3)
 }
 
-func (p *PngServices) Compress(img image.Image, resultName string, quality int) error {
+func (p *pngServices) Compress(img image.Image, resultName string, quality int) error {
 
 	outFile, err := os.Create(resultName + ".jpg")
 	if err != nil {
