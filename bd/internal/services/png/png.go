@@ -3,8 +3,7 @@ package services
 import (
 	"fmt"
 	"image"
-	"image/jpeg"
-	"net/http"
+	"image/png"
 	"os"
 
 	"github.com/nfnt/resize"
@@ -16,45 +15,35 @@ func NewPngServices() *pngServices {
 	return &pngServices{}
 }
 
-func (p *pngServices) Decode(inputFile string) (image.Image, error) {
-	file, err := os.Open(inputFile)
-	if err != nil {
-		panic(err)
-	}
+func (p *pngServices) Decode(fileName string) error {
+
+	file, _ := os.Open(fileName)
 	defer file.Close()
-
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-	if err != nil {
-		panic(err)
-	}
-
-	mimeType := http.DetectContentType(buffer)
-
-	if mimeType != "image/png" {
-		return nil, fmt.Errorf("формат не пнг")
-	}
 
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return nil, fmt.Errorf("something wrong")
+		return fmt.Errorf("something wrong")
 	}
-	return img, nil
+
+	resizing(&img)
+	compress(img)
+
+	return nil
 }
 
-func (p *pngServices) Resize(img image.Image) image.Image {
-	return resize.Resize(0, 500, img, resize.Lanczos3)
-}
+func compress(img image.Image) error {
 
-func (p *pngServices) Compress(img image.Image, resultName string, quality int) error {
-
-	outFile, err := os.Create(resultName + ".jpg")
+	outFile, err := os.Create("uploaded_image.png")
 	if err != nil {
 		return err
 	}
 	defer outFile.Close()
 
-	jpeg.Encode(outFile, img, &jpeg.Options{Quality: quality})
+	png.Encode(outFile, img)
 
 	return nil
+}
+
+func resizing(img *image.Image) {
+	resize.Resize(0, 500, *img, resize.Lanczos3)
 }
