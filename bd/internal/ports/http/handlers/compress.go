@@ -1,15 +1,17 @@
 package handlers
 
 import (
-	png "bd/bd/internal/services/png"
+	repo "bd/bd/internal/repo/redis"
+
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 )
 
 func Compress(w http.ResponseWriter, r *http.Request) {
-	var compressingService = png.NewPngServices()
 
 	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
 
@@ -17,8 +19,11 @@ func Compress(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Только файлы PNG поддерживаются", http.StatusUnsupportedMediaType)
 		return
 	}
+	imageID := strconv.Itoa(int(time.Now().Unix()))
+	fileName := imageID + ".png"
 
-	outFile, err := os.Create("uploaded_image.png")
+	outFile, err := os.Create(fileName)
+
 	if err != nil {
 		http.Error(w, "Ошибка при создании файла", http.StatusInternalServerError)
 		return
@@ -30,16 +35,18 @@ func Compress(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка при записи файла", http.StatusInternalServerError)
 		return
 	}
+	repo.AddToQueue(imageID)
 
-	compressingService.Decode("uploaded_image.png")
+	fmt.Fprintln(w, "Файл успешно загружен")
+}
 
+func GetImage(w http.ResponseWriter, r *http.Request) {
+	imageID := r.URL.Query().Get("id")
 	w.Header().Set("Content-Type", "image/png")
 	w.WriteHeader(http.StatusOK)
 
-	file, _ := os.Open("uploaded_image.png")
+	file, _ := os.Open(imageID + ".png")
 	defer file.Close()
 
 	_, _ = io.Copy(w, file)
-
-	fmt.Fprintln(w, "Файл успешно загружен")
 }

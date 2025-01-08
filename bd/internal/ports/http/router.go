@@ -12,7 +12,8 @@ import (
 func NewRouter() http.Handler {
 
 	authMux := mux.NewRouter()
-	authMux.HandleFunc("/compress", handlers.Compress)
+	authMux.HandleFunc("/compress", handlers.Compress).Methods("POST")
+	authMux.HandleFunc("/compress", handlers.GetImage).Methods("GET")
 
 	return authMux
 }
