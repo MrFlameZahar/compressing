@@ -34,7 +34,7 @@ func InitRedis() {
 
 		} else if err != nil {
 			log.Fatalf("Failed to pop from queue: %v", err)
-		}A
+		}
 		var compressingService = png.NewPngServices()
 		compressingService.Decode(task)
 
